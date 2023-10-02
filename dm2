@@ -1,0 +1,276 @@
+// Insert sample data for patients
+db.patients.insertMany([
+    {
+        "SSN": "patient1",
+        "name": "John Doe",
+        "address": "123 Main St",
+        "age": 20,
+        "doctorSSN": ["doctor1", "doctor2"]
+    },
+    {
+        "SSN": "patient2",
+        "name": "Jane Smith",
+        "address": "456 Elm St",
+        "age": 25,
+        "doctorSSN": ["doctor2", "doctor3"]
+    },
+    {
+        "SSN": "patient3",
+        "name": "Alice Johnson",
+        "address": "789 Oak St",
+        "age": 20,
+        "doctorSSN": ["doctor1"]
+    },
+    {
+        "SSN": "patient4",
+        "name": "Bob Wilson",
+        "address": "321 Elm St",
+        "age": 35,
+        "doctorSSN": ["doctor3"]
+    }
+]);
+
+// Insert sample data for doctors
+db.doctors.insertMany([
+    {
+        "SSN": "doctor1",
+        "name": "Dr. Smith",
+        "specialty": "Eye Specialist",
+        "yearsOfExperience": 15,
+        "patients": ["patient1", "patient3"]
+    },
+    {
+        "SSN": "doctor2",
+        "name": "Dr. Johnson",
+        "specialty": "Cardiologist",
+        "yearsOfExperience": 10,
+        "patients": ["patient1", "patient2"]
+    },
+    {
+        "SSN": "doctor3",
+        "name": "Dr. Brown",
+        "specialty": "Dermatologist",
+        "yearsOfExperience": 8,
+        "patients": ["patient2", "patient4"]
+    },
+    {
+        "SSN": "doctor4",
+        "name": "Dr. Lee",
+        "specialty": "Pediatrician",
+        "yearsOfExperience": 12,
+        "patients": []
+    }
+]);
+
+// Insert sample data for pharmacies
+db.pharmacies.insertMany([
+    {
+        "name": "Pharmacy1",
+        "address": "123 Pine St",
+        "phone": "567-890-1234",
+        "contracts": [
+            {
+                "pharmaCoName": "PharmaCo1",
+                "startDate": "2023-01-01",
+                "endDate": "2024-01-01",
+                "supervisor": "Supervisor1",
+                "text": "Contract 1"
+            }
+        ]
+    },
+    {
+        "name": "Pharmacy2",
+        "address": "456 Birch St",
+        "phone": "234-567-8901",
+        "contracts": [
+            {
+                "pharmaCoName": "PharmaCo2",
+                "startDate": "2023-02-01",
+                "endDate": "2024-02-01",
+                "supervisor": "Supervisor2",
+                "text": "Contract 2"
+            }
+        ]
+    },
+    {
+        "name": "Pharmacy3",
+        "address": "789 Cedar St",
+        "phone": "111-222-3333",
+        "contracts": [
+            {
+                "pharmaCoName": "PharmaCo1",
+                "startDate": "2023-01-01",
+                "endDate": "2024-01-01",
+                "supervisor": "Supervisor3",
+                "text": "Contract 3"
+            }
+        ]
+    },
+    {
+        "name": "Pharmacy4",
+        "address": "321 Oak St",
+        "phone": "999-888-7777",
+        "contracts": [
+            {
+                "pharmaCoName": "PharmaCo3",
+                "startDate": "2023-03-01",
+                "endDate": "2024-03-01",
+                "supervisor": "Supervisor4",
+                "text": "Contract 4"
+            }
+        ]
+    }
+]);
+
+// Insert sample data for pharmaceutical companies
+db.pharmaceutical_companies.insertMany([
+    {
+        "name": "PharmaCo1",
+        "address": "123 Elm St",
+        "phone": "555-555-5555"
+    },
+    {
+        "name": "PharmaCo2",
+        "address": "456 Maple St",
+        "phone": "987-654-3210"
+    },
+    {
+        "name": "PharmaCo3",
+        "address": "789 Oak St",
+        "phone": "123-456-7890"
+    }
+]);
+// Insert sample data for drugs with prescription 
+db.drugs.insertMany([
+    {
+        "tradeName": "Drug1",
+        "formula": "Formula1",
+        "pharmaCoName": "PharmaCo1",
+        "prescriptionDate": "2013-01-15",
+        "prescribedByDoctorSSN": "doctor1"
+    },
+    {
+        "tradeName": "Drug2",
+        "formula": "Formula2",
+        "pharmaCoName": "PharmaCo2",
+        "prescriptionDate": "2013-02-20",
+        "prescribedByDoctorSSN": "doctor2" 
+    },
+    {
+        "tradeName": "Drug3",
+        "formula": "Formula3",
+        "pharmaCoName": "PharmaCo3",
+        "prescriptionDate": "2013-03-10", 
+        "prescribedByDoctorSSN": "doctor3" 
+    }
+]);
+// Insert sample data for drugs
+db.drugs.insertMany([
+    {
+        "tradeName": "Drug1",
+        "formula": "Formula1",
+        "pharmaCoName": "PharmaCo1"
+    },
+    {
+        "tradeName": "Drug2",
+        "formula": "Formula2",
+        "pharmaCoName": "PharmaCo2"
+    },
+    {
+        "tradeName": "Drug3",
+        "formula": "Formula3",
+        "pharmaCoName": "PharmaCo3"
+    }
+]);
+// Insert sample data for healthcare assistants
+db.healthcare_assistants.insertMany([
+    {
+        "SSN": "assistant1",
+        "name": "Alice Assistant",
+        "specialty": "Operation Theatre"
+    },
+    {
+        "SSN": "assistant2",
+        "name": "Bob Assistant",
+        "specialty": "Operation Theatre"
+    },
+    {
+        "SSN": "assistant3",
+        "name": "Charlie Assistant",
+        "specialty": "Pediatrics"
+    },
+    {
+        "SSN": "assistant4",
+        "name": "David Assistant",
+        "specialty": "Cardiology"
+    }
+]);
+//query1
+db.patients.find({
+  "age": 20,
+  "doctorSSN": {
+    $in: db.doctors.find({ "specialty": "Eye Specialist" }, { "_id": 0, "SSN": 1 })
+                     .toArray()
+                     .map(d => d.SSN)
+  }
+});
+//query2
+ db.doctors.aggregate([ { $lookup: { from: "drugs", localField: "SSN", foreignField: "prescribedByDoctorSSN",  as: "prescribedDrugs" } }, { $match: { "prescribedDrugs.prescriptionDate": { $regex: /^2013-/ } } }, { $group: { _id: "$_id", name: { $first: "$name" }, specialty: { $first: "$specialty" }, yearsOfExperience: { $first: "$yearsOfExperience" }, patientCount: { $sum: 1 } /* Count unique patients based on prescriptions*/ } }, { $match: { "patientCount": { $gte: 1 } } }] );
+//query3
+db.doctors.find().sort({ "yearsOfExperience": -1 }).limit(1);
+//query4
+db.pharmaceutical_companies.aggregate([
+  {
+    $lookup: {
+      from: "contracts",
+      localField: "name",
+      foreignField: "pharmaCoName",
+      as: "contracts"
+    }
+  },
+  {
+    $lookup: {
+      from: "pharmacies",
+      localField: "contracts.pharmacyName",
+      foreignField: "name",
+      as: "pharmacies"
+    }
+  },
+  {
+    $group: {
+      _id: "$_id",
+      name: { $first: "$name" },
+      address: { $first: "$address" },
+      phone: { $first: "$phone" },
+      pharmacyCount: { $sum: 1 }
+    }
+  },
+  {
+    $match: {
+      "pharmacyCount": { $gt: 10 }
+    }
+  }
+]);
+//query5
+db.healthcare_assistants.find({ "specialty": "Operation Theatre" });
+//query6
+db.pharmaceutical_companies.aggregate([
+  {
+    $lookup: {
+      from: "drugs",
+      localField: "name",
+      foreignField: "pharmaCoName",
+      as: "drugs"
+    }
+  },
+  {
+    $unwind: "$drugs"
+  },
+  {
+    $project: {
+      "name": 1,
+      "drugs.tradeName": 1,
+      "drugs.formula": 1
+    }
+  }
+]);

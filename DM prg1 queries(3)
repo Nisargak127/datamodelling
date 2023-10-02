@@ -1,0 +1,56 @@
+create table EMPLOYEE(SSN int primary key, fname varchar(20), lname varchar(20), dob date, salary float);
+create table DEPARTMENT(DNO int primary key, Dname varchar(20), mgrssn int references EMPLOYEE(SSN));
+create table PROJECT(PNO int primary key, Pname varchar(20), budget float, stdate date, enddate date, DNO int references DEPARTMENT(DNO));
+create table DEPENDENT(SSN int references EMPLOYEE(SSN), DepName varchar(20), relation varchar(20), Bdate date, primary key(SSN, DepName));
+create table WORKS_ON(SSN int references EMPLOYEE(SSN), PNO int references PROJECT(PNO), hours time, primary key(SSN, PNO));
+create table DEPT_LOC(DNO int references DEPARTMENT(DNO), Dlocation varchar(20), primary key(DNO, Dlocation));
+create table PROJ_LOC(PNO int references PROJECT(PNO), Plocation varchar(20), primary key(PNO, Plocation));
+alter table EMPLOYEE add(SupSSN int references EMPLOYEEE(SSN), DNO int references DEPARTMENT(DNO));
+alter table EMPLOYEE add constraint foreign key(SupSSN) references EMPLOYEE(SSN));
+alter table EMPLOYEE add constraint foreign key(DNO) references DEPARTMENT(DNO);
+alter table DEPARTMENT add constraint foreign key(mgrssn) references EMPLOYEE(SSN);
+alter table PROJECT add constraint foreign key(DNO) references DEPARTMENT(DNO);
+alter table DEPENDENT add constraint foreign key(SSN) references EMPLOYEE(SSN);
+alter table WORKS_ON add constraint foreign key(SSN) references EMPLOYEE(SSN);
+alter table WORKS_ON add constraint foreign key(PNO) references PROJECT(PNO);
+alter table DEPT_LOC add constraint foreign key(DNO) references DEPARTMENT(DNO);
+alter table PROJ_LOC add constraint foreign key(PNO) references PROJECT(PNO);
+INSERT INTO EMPLOYEE (SSN, fname, lname, dob, salary, SupSSN, DNO) VALUES   (123456789, 'John', 'Doe', '1990-05-10', 50000.00, NULL, 1),   (987654321, 'Jane', 'Smith', '1985-08-15', 60000.00, 123456789, 1
+),   (456789123, 'Mike', 'Johnson', '1995-03-20', 45000.00, 123456789, 2),   (111222333, 'Emily', 'Brown', '1992-11-25', 55000.00, 987654321, 2),   (444555666, 'David', 'Lee', '1988-04-05', 62000.00, 987654321,
+1),   (777888999, 'Lisa', 'Williams', '1991-12-30', 52000.00, 123456789, 2),   (999888777, 'Michael', 'Anderson', '1987-06-18', 57000.00, 987654321, 1),   (666333222, 'Laura', 'Martinez', '1993-09-12', 48000.00,
+ 123456789, 1),   (222111444, 'William', 'Taylor', '1989-02-28', 58000.00, 987654321, 2),   (555444333, 'Sarah', 'Robinson', '1994-07-08', 51000.00, 123456789, 1);
+INSERT INTO DEPARTMENT (DNO, Dname, mgrssn) VALUES   (1, 'Human Resources', 123456789),   (2, 'R&D', 987654321),   (3, 'Finance', 456789123),   (4, 'Sales', 111222333);
+INSERT INTO PROJECT (PNO, Pname, budget, stdate, enddate, DNO) VALUES   (101, 'Website Redesign', 50000.00, '2023-06-01', '2023-09-30', 2),   (102, 'Product Launch', 75000.00, '2023-07-15', '2023-12-31',
+1),   (103, 'Market Research', 30000.00, '2023-08-10', '2023-11-30', 2),   (104, 'Software Upgrade', 60000.00, '2023-09-05', '2023-12-15', 3),   (105, 'New Sales Strategy', 45000.00, '2023-10-20', '2024-01-31',
+4);
+INSERT INTO DEPENDENT (SSN, DepName, relation, Bdate)
+   VALUES
+     (123456789, 'Sarah Doe', 'Daughter', '2005-02-10'),
+     (987654321, 'Michael Smith', 'Son', '2010-07-15'),
+      (456789123, 'Emma Johnson', 'Daughter', '2014-05-20'),
+      (111222333, 'Daniel Brown', 'Son', '2012-11-25'),(444555666, 'Olivia Lee', 'Daughter', '2018-04-05');
+INSERT INTO WORKS_ON (SSN, PNO, hours)
+     VALUES
+      (123456789, 101, '40:00:00'),
+      (987654321, 102, '35:30:00'),
+      (456789123, 103, '28:15:00'),
+      (111222333, 104, '39:45:00'),
+      (444555666, 105, '42:20:00'),
+      (777888999, 106, '37:10:00'),
+      (999888777, 102, '29:30:00');
+INSERT INTO PROJ_LOC (PNO, Plocation) VALUES   (101, 'New York'),   (102, 'Los Angeles'),   (103, 'Chicago'),   (104, 'San Francisco'),   (105, 'Miami'),   (102, 'Seattle'),   (103, 'Boston');
+INSERT INTO DEPT_LOC (DNO, Dlocation) VALUES   (1, 'New York'),   (2, 'Los Angeles'),   (3, 'Chicago'),   (4, 'San Francisco'),   (1, 'Miami'),   (2, 'Seattle');
+
+Update EMPLOYEE set DNO=1 where SSN=123456789;
+
+select e.fname, e.lname, d.Dname from EMPLOYEE e, DEPARTMENT d where e.DNO=d.DNO and e.salary > (select avg(ee.salary) from EMPLOYEE ee, DEPARTMENT dd where ee.DNO=dd.DNO and dd.Dname='Finance');
+
+select e.fname, d.Dname from EMPLOYEE e, DEPARTMENT d, WORKS_ON w where e.DNO=d.DNO and e.SSN=w.SSN and w.PNO in (select PNO from PROJECT where DNO=(select DNO from DEPARTMENT where Dname="R&D")) group by e.SSN having count(w.PNO)>2;
+
+select d.Dname, p.* from DEPARTMENT d, PROJECT p where d.DNO= p.DNO and p.enddate> CURRENT_DATE;
+
+select distinct e.fname, d.Dname from EMPLOYEE e, DEPARTMENT d where e.DNO=d.DNO and e.SSN in (select SupSSN from EMPLOYEE where SSN in (select SSN from WORKS_ON group by SSN having count(PNO) >=1) group by SupSSN having count(SupSSN)>2);
+
+select e.fname from EMPLOYEE e, DEPENDENT d, WORKS_ON w, PROJECT p where e.SSN=d.SSN and e.SSN=w.SSN and w.PNO=p.PNO group by e.SSN having sum(p.budget)>=100000;
+
+select d.Dname, e.* from EMPLOYEE e, DEPARTMENT d where e.DNO=d.DNO and d.DNO in (select DNO from PROJECT where PNO in (select PNO from PROJ_LOC group by PNO having count(PNO)>1));
